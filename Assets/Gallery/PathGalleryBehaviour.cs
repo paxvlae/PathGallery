@@ -1,15 +1,19 @@
 ﻿using UnityEngine;
-using System.Collections;
 
+[System.Serializable]
+public class PathCameraSettings
+{
+    public float OutZoomDistance;
+    [System.NonSerialized]
+    public Transform Camera;
+}
 public abstract class CameraBehaviour : MonoBehaviour
 {
-    protected readonly Transform camera;
-    protected readonly float outZoomDistance;
+    protected readonly PathCameraSettings settings;
 
-    protected CameraBehaviour(Transform camera, float outZoomDistance)
+    protected CameraBehaviour(PathCameraSettings settings)
     {
-        this.camera = camera;
-        this.outZoomDistance = outZoomDistance;
+        this.settings = settings;
     }
 
     public virtual void Pan(Vector2 obj)
@@ -30,9 +34,10 @@ public abstract class CameraBehaviour : MonoBehaviour
 
 public class Zoom0Behaviour : CameraBehaviour
 {
-    public Zoom0Behaviour(Transform camera, float outZoomDistance)
-        : base(camera, outZoomDistance)
+
+    public Zoom0Behaviour(PathCameraSettings settings) : base(settings)
     {
+        throw new System.NotImplementedException();
     }
 
     public override void Pan(Vector2 obj)
@@ -47,7 +52,7 @@ public class Zoom0Behaviour : CameraBehaviour
 
     public override CameraBehaviour ZoomIn(Transform pathElements)
     {
-        return new Zoom1Behaviour(camera, outZoomDistance);
+        return new Zoom1Behaviour(settings);
     }
 
     public override CameraBehaviour ZoomOut(Transform pathElements)
@@ -60,8 +65,8 @@ public class Zoom0Behaviour : CameraBehaviour
 
 public class Zoom1Behaviour : CameraBehaviour
 {
-    public Zoom1Behaviour(Transform camera, float outZoomDistance)
-        : base(camera, outZoomDistance)
+    public Zoom1Behaviour(PathCameraSettings settings)
+        : base(settings)
     {
     }
 
@@ -78,24 +83,23 @@ public class Zoom1Behaviour : CameraBehaviour
         
         bool IsImage = true;
         if (IsImage)
-            return new Zoom2Behaviour(camera, outZoomDistance);
+            return new Zoom2Behaviour(settings);
         else
-            return new Zoom2ModelBehavior(camera, outZoomDistance);
+            return new Zoom2ModelBehavior(settings);
     }
 
     public override CameraBehaviour ZoomOut(Transform pathElements)
     {
         //TODO
 
-
-        return new Zoom0Behaviour(camera, outZoomDistance);
+        return new Zoom0Behaviour(settings);
     }
 }
 
 public class Zoom2Behaviour : CameraBehaviour
 {
-    public Zoom2Behaviour(Transform camera, float outZoomDistance)
-        : base(camera, outZoomDistance)
+    public Zoom2Behaviour(PathCameraSettings settings)
+        : base(settings)
     {
     }
 
@@ -114,14 +118,14 @@ public class Zoom2Behaviour : CameraBehaviour
     {
         //TODO
 
-        return new Zoom1Behaviour(camera, outZoomDistance);
+        return new Zoom1Behaviour(settings);
     }
 }
 
 public class Zoom2ModelBehavior : Zoom2Behaviour
 {
-    public Zoom2ModelBehavior(Transform camera, float outZoomDistance)
-        : base(camera, outZoomDistance)
+    public Zoom2ModelBehavior(PathCameraSettings settings)
+        : base(settings)
     {
     }
 
