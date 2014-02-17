@@ -1,0 +1,25 @@
+.DS_Store
+/Library
+/Temp
+*.csproj
+*.pidb
+*.unityproj
+*.sln
+*.suo
+*.userprefs
+obj/
+/Temp/
+/Start_Data/
+/Start.exe
+#######
+# Git
+######
+*.orig
+*.orig.meta
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+*.MERGED.*
+
+*.exe
+
