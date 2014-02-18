@@ -40,17 +40,17 @@ class UserMovesInterpreter
     class SwipeInterpreter : ITouchInterpreter
     {
         private readonly Vector2 idealSwipeVector;
-        private readonly float angle;
+        private readonly float maxAngle;
         private readonly float swipeDistance;
         private readonly Rect rect;
         private List<TouchWithStartPosition> activeTouches = new List<TouchWithStartPosition>();
         public event Action Swipe;
 
 
-        public SwipeInterpreter(Vector2 idealSwipeVector, float angle, float swipeDistance, Rect rect)
+        public SwipeInterpreter(Vector2 idealSwipeVector, float maxAngle, float swipeDistance, Rect rect)
         {
             this.idealSwipeVector = idealSwipeVector;
-            this.angle = angle;
+            this.maxAngle = maxAngle;
             this.swipeDistance = swipeDistance * swipeDistance;
             this.rect = rect;
         }
@@ -70,6 +70,7 @@ class UserMovesInterpreter
 
         public void TouchMoved(List<TouchPoint> list)
         {
+            RemoveMissMoves();
             if (
                 activeTouches.Where(x => list.Contains(x.Touch))
                     .Any(x => (x.Touch.Position - x.StartPos).sqrMagnitude > swipeDistance))
@@ -78,6 +79,17 @@ class UserMovesInterpreter
                 if (Swipe != null)
                     Swipe();
             }
+        }
+
+        private void RemoveMissMoves()
+        {
+            activeTouches.RemoveAll(x =>
+            {
+                var moveVect = x.Touch.Position - x.StartPos;
+                var angle = Vector2.Angle(moveVect, idealSwipeVector);
+                //Debug.Log(x.Touch.Id + " ang: " + angle + " MV: " + moveVect + " id: " + idealSwipeVector);
+                return angle > maxAngle;
+            });
         }
 
         public void OnGUI()
@@ -216,11 +228,11 @@ class UserMovesInterpreter
 
         var borderWidth = Screen.width * settings.percentageSwipeArea / 100;
         var leftBorder = new Rect(0f, 0f, borderWidth, Screen.height);
-        lefSwipeInterpreter = new SwipeInterpreter(new Vector2(-1.0f, 0), settings.swipeAngle, settings.swipeDistance, leftBorder);
+        lefSwipeInterpreter = new SwipeInterpreter(new Vector2(1.0f, 0), settings.swipeAngle, settings.swipeDistance, leftBorder);
         lefSwipeInterpreter.Swipe += () => { if (swipe != null) swipe(-1); };
 
         var rightBorder = new Rect(Screen.width - borderWidth, 0f, borderWidth, Screen.height);
-        rightSwipeInterpreter = new SwipeInterpreter(new Vector2(1.0f, 0), settings.swipeAngle, settings.swipeDistance, rightBorder);
+        rightSwipeInterpreter = new SwipeInterpreter(new Vector2(-1.0f, 0), settings.swipeAngle, settings.swipeDistance, rightBorder);
         rightSwipeInterpreter.Swipe += () => { if (swipe != null) swipe(1); };
 
         var pinchRect = new Rect(borderWidth, 0, Screen.width - borderWidth, Screen.height);
