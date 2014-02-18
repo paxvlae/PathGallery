@@ -24,7 +24,10 @@ public class PathGalleryMaker : MonoBehaviour
     void Start ()
     {
         var gallerySlotsUnorder = GameObject.FindGameObjectsWithTag("PathElement");
-        var gallerySlots = gallerySlotsUnorder.OrderBy(x => x.name.Split('_')[1]).ToArray();
+        var gallerySlots = (from element in gallerySlotsUnorder
+            let number = int.Parse(element.name.Split('_')[1])
+            orderby number
+            select element.transform).ToArray();
         for (int index = 0; index < galleryElements.Count && index < gallerySlots.Length; index++)
         {
             var element = galleryElements[index];

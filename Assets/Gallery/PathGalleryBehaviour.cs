@@ -1,13 +1,7 @@
 ﻿using UnityEngine;
 
-[System.Serializable]
-public class PathCameraSettings
-{
-    public float OutZoomDistance;
-    [System.NonSerialized]
-    public Transform Camera;
-}
-public abstract class CameraBehaviour : MonoBehaviour
+
+public abstract class CameraBehaviour
 {
     protected readonly PathCameraSettings settings;
 
@@ -37,7 +31,6 @@ public class Zoom0Behaviour : CameraBehaviour
 
     public Zoom0Behaviour(PathCameraSettings settings) : base(settings)
     {
-        throw new System.NotImplementedException();
     }
 
     public override void Pan(Vector2 obj)
@@ -69,12 +62,6 @@ public class Zoom1Behaviour : CameraBehaviour
         : base(settings)
     {
     }
-
-    public override void Pan(Vector2 obj)
-    {
-        //EMPTY FUNCTION
-    }
-
 
     public override CameraBehaviour ZoomIn(Transform pathElements)
     {

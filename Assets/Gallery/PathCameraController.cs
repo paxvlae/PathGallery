@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using TouchScript;
-using TouchScript.Events;
 using UnityEngine;
 using System.Collections;
 
@@ -13,51 +10,11 @@ using System.Collections;
 [System.Serializable]
 public class TouchSettings
 {
-    public float sensitiv;
     public float percentageSwipeArea;
-}
-
-
-
-
-class UserMovesInterpreter
-{
-    private readonly TouchSettings settings;
-    public event Action<Vector2> panGesture;
-    public event Action zoomIn;
-    public event Action zoomOut;
-    public event Action<int> swipe;
-
-
-    public UserMovesInterpreter(TouchSettings settings)
-    {
-        this.settings = settings;
-        TouchManager.Instance.TouchesBegan += TouchesBegan;
-        TouchManager.Instance.TouchesCancelled += TouchesEnded;
-        TouchManager.Instance.TouchesEnded += TouchesEnded;
-        TouchManager.Instance.TouchesMoved += TouchesMoves;
-
-    }
-
-    private void TouchesMoves(object sender, TouchEventArgs e)
-    {
-        
-    }
-
-    private void TouchesEnded(object sender, TouchEventArgs touchEventArgs)
-    {
-        
-    }
-
-    void TouchesBegan(object sender, TouchScript.Events.TouchEventArgs e)
-    {
-        
-    }
-
-    public void Update()
-    {
-
-    }
+    public float zoomInDistance;
+    public float zoomOutDistance;
+    public float swipeDistance;
+    public float swipeAngle;
 }
 
 
@@ -70,27 +27,39 @@ public class PathCameraController : MonoBehaviour
     private int actualElementIndex;
     private UserMovesInterpreter Interpreter;
     private CameraBehaviour cameraBehaviour;
-    
+
     // Use this for initialization
-	void Start () {
+    void Start()
+    {
         var gallerySlotsUnorder = GameObject.FindGameObjectsWithTag("PathElement");
-	    pathElementsList = gallerySlotsUnorder.OrderBy(x => int.Parse(x.name.Split('_')[1])).Select(x => x.transform).ToArray();
-	    actualElementIndex = 0;
-	    Interpreter = new UserMovesInterpreter(touchSettings);
-	    CameraSettings.Camera = transform;
+        pathElementsList = (from element in gallerySlotsUnorder
+            let number = int.Parse(element.name.Split('_')[1])
+            orderby number
+            select element.transform).ToArray();
+        actualElementIndex = 0;
+        Interpreter = new UserMovesInterpreter(touchSettings);
+        CameraSettings.Camera = transform;
         cameraBehaviour = new Zoom0Behaviour(CameraSettings);
-        Interpreter.panGesture += cameraBehaviour.Pan;
-	    Interpreter.swipe += InterpreterOnSwipe;
-	    Interpreter.zoomIn += InterpreterOnZoomIn;
-	    Interpreter.zoomOut += InterpreterOnZoomOut;
-	}
+        Interpreter.panGesture += InterpreterOnPanGesture;
+        Interpreter.swipe += InterpreterOnSwipe;
+        Interpreter.zoomIn += InterpreterOnZoomIn;
+        Interpreter.zoomOut += InterpreterOnZoomOut;
+    }
+
+    private void InterpreterOnPanGesture(Vector2 vector2)
+    {
+        cameraBehaviour.Pan(vector2);
+    }
 
     private void InterpreterOnSwipe(int i)
     {
+#region DEBUG
+        Debug.Log("Swipe " + i);
+#endregion
         actualElementIndex += i;
         var oldVal = actualElementIndex;
         actualElementIndex = Mathf.Clamp(actualElementIndex, 0, pathElementsList.Length - 1);
-        if(oldVal != actualElementIndex)
+        if (oldVal != actualElementIndex)
             cameraBehaviour.Swipe(pathElementsList[actualElementIndex]);
 
     }
@@ -98,15 +67,31 @@ public class PathCameraController : MonoBehaviour
     private void InterpreterOnZoomOut()
     {
         cameraBehaviour = cameraBehaviour.ZoomOut(pathElementsList[actualElementIndex]);
-        
+        #region DEBUG
+            Debug.Log("Zoom out. Actual state is" + cameraBehaviour.GetType().Name); 
+        #endregion
     }
 
     private void InterpreterOnZoomIn()
     {
         cameraBehaviour = cameraBehaviour.ZoomIn(pathElementsList[actualElementIndex]);
+        #region DEBUG
+            Debug.Log("Zoom in. Actual state is" + cameraBehaviour.GetType().Name);
+        #endregion
     }
+
+/* Use for debug
+    void OnGUI()
+    {
+        Interpreter.OnGUI();
+    }
+*/
     void Update()
     {
-        Interpreter.Update();
+        //  Interpreter.Update();
+    }
+    void OnDestroy()
+    {
+        Interpreter.Destroy();
     }
 }
