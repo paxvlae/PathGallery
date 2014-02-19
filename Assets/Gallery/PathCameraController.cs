@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Assets.Utility;
 using UnityEngine;
 using System.Collections;
 
@@ -7,19 +10,12 @@ using System.Collections;
 //ZOOM2
 
 
-[System.Serializable]
-public class TouchSettings
-{
-    public float percentageSwipeArea;
-    public float zoomInDistance;
-    public float zoomOutDistance;
-    public float swipeDistance;
-    public float swipeAngle;
-}
+
 
 
 public class PathCameraController : MonoBehaviour
 {
+    public static PathCameraController Instance;
     public TouchSettings touchSettings;
     public PathCameraSettings CameraSettings;
 
@@ -31,6 +27,7 @@ public class PathCameraController : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        Instance = this;
         var gallerySlotsUnorder = GameObject.FindGameObjectsWithTag("PathElement");
         pathElementsList = (from element in gallerySlotsUnorder
             let number = int.Parse(element.name.Split('_')[1])
@@ -51,6 +48,13 @@ public class PathCameraController : MonoBehaviour
         cameraBehaviour.Pan(vector2);
     }
 
+    public void SlideClicked(string targetName)
+    {
+        actualElementIndex = pathElementsList.IndexOfFirst(x => x.name == targetName);
+        cameraBehaviour.Swipe(pathElementsList[actualElementIndex]);
+        cameraBehaviour = cameraBehaviour.ZoomIn(pathElementsList[actualElementIndex]);
+    }
+
     private void InterpreterOnSwipe(int i)
     {
 #region DEBUG
@@ -61,7 +65,6 @@ public class PathCameraController : MonoBehaviour
         actualElementIndex = Mathf.Clamp(actualElementIndex, 0, pathElementsList.Length - 1);
         if (oldVal != actualElementIndex)
             cameraBehaviour.Swipe(pathElementsList[actualElementIndex]);
-
     }
 
     private void InterpreterOnZoomOut()
@@ -89,6 +92,7 @@ public class PathCameraController : MonoBehaviour
     void Update()
     {
         //  Interpreter.Update();
+        cameraBehaviour.Update();
     }
     void OnDestroy()
     {

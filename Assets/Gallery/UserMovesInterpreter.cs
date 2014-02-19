@@ -6,11 +6,13 @@ using TouchScript.Events;
 using UnityEngine;
 
 [System.Serializable]
-public class PathCameraSettings
+public class TouchSettings
 {
-    public float OutZoomDistance;
-    [System.NonSerialized]
-    public Transform Camera;
+    public float percentageSwipeArea;
+    public float zoomInDistance;
+    public float zoomOutDistance;
+    public float swipeDistance;
+    public float swipeAngle;
 }
 class UserMovesInterpreter
 {
@@ -29,6 +31,8 @@ class UserMovesInterpreter
 
         public TouchPoint Touch;
         public Vector2 StartPos;
+        public Vector2 MoveVector { get { return Touch.Position - StartPos; }}
+        public float MoveSqrtMagnitude { get { return MoveVector.sqrMagnitude; } }
     }
 
     interface ITouchInterpreter
@@ -84,13 +88,20 @@ class UserMovesInterpreter
         private void RemoveMissMoves()
         {
             activeTouches.RemoveAll(x =>
-            {
-                var moveVect = x.Touch.Position - x.StartPos;
-                var angle = Vector2.Angle(moveVect, idealSwipeVector);
-                //Debug.Log(x.Touch.Id + " ang: " + angle + " MV: " + moveVect + " id: " + idealSwipeVector);
-                return angle > maxAngle;
+            {   
+                var moveVect = x.MoveVector;
+                if (moveVect.sqrMagnitude > SwipeStartTreshold)
+                {
+                    var angle = Vector2.Angle(moveVect, idealSwipeVector);
+                    //Debug.Log(x.Touch.Id + " ang: " + angle + " MV: " + moveVect + " id: " + idealSwipeVector);
+                    return angle > maxAngle;    
+                }
+                return false;
+
             });
         }
+
+        public const float SwipeStartTreshold = 4f;
 
         public void OnGUI()
         {
